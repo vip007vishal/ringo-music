@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <div id="songs"></div>
+
+  <script>
+    fetch("https://raw.githubusercontent.com/vip007vishal/ringo-music/main/data/songs.json")
+      .then(r => r.json())
+      .then(data => {
+        data.songs.forEach(song => {
+          document.getElementById("songs").innerHTML += `
+            <h3>${song.title} — ${song.artist}</h3>
+            <audio controls src="${song.audio}"></audio>
+          `;
+        });
+      });
+  </script>
+</body>
+</html>

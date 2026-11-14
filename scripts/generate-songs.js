@@ -15,22 +15,55 @@ const GITHUB_RAW_BASE =
 
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"];
 
-function slugify(name) {
-  return name
-    .replace(/\.[^/.]+$/, "") // remove extension
-    .replace(/[-_]/g, " ")
+function cleanName(str) {
+  return str
+    .replace(/\(MP3[_\s]?\d+K?\)/gi, "")  // remove (MP3_320K), (MP3 320K) etc.
+    .replace(/\|_/g, " ")                  // remove YouTube separators
+    .replace(/\s*_\s*/g, " ")              // underscores → spaces
+    .replace(/\s*\|\s*/g, " ")             // pipes → spaces
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function inferMeta(filename) {
-  // Try to parse "Title - Artist.mp3" or "Artist - Title.mp3"
-  const base = filename.replace(/\.[^/.]+$/, "");
-  const parts = base.split(/\s*-\s*/);
-  if (parts.length >= 2) {
-    return { title: parts[0].trim(), artist: parts.slice(1).join(" - ").trim() };
+  // Strip extension
+  let base = filename.replace(/\.[^/.]+$/, "");
+
+  // Clean YouTube-style filenames (contain _ as separator like "Title _ Artist _ ...")
+  if (base.includes(" _ ")) {
+    const parts = base.split(" _ ").map(p => cleanName(p)).filter(Boolean);
+    // First part is usually the song title, rest are contributors/channel
+    const title = parts[0];
+    const artist = parts.length > 1 ? parts[1] : "Unknown Artist";
+    return { title, artist };
   }
-  return { title: slugify(filename), artist: "Unknown Artist" };
+
+  // Try "Title-Artist.mp3" (hyphen separator, no spaces around it)
+  const hyphenParts = base.split("-");
+  if (hyphenParts.length >= 2) {
+    // Check if last part looks like a site/artist tag (e.g. MassTamilan.dev, MassTamilan.io)
+    const lastPart = hyphenParts[hyphenParts.length - 1].trim();
+    const isSiteTag = /\.(dev|io|com|net|org|in)/i.test(lastPart);
+
+    if (isSiteTag && hyphenParts.length >= 3) {
+      // e.g. "A-Humble-Engineer-MassTamilan.io" → title="A Humble Engineer", artist=site
+      const artist = lastPart;
+      const title = cleanName(hyphenParts.slice(0, -1).join(" "));
+      return { title, artist };
+    }
+
+    if (isSiteTag) {
+      // e.g. "Badass-MassTamilan.dev" → title="Badass", artist="MassTamilan.dev"
+      const title = cleanName(hyphenParts.slice(0, -1).join(" "));
+      return { title, artist: lastPart };
+    }
+
+    // Generic "Word-Word" → title="Word Word" (no meaningful artist split)
+    return { title: cleanName(base.replace(/-/g, " ")), artist: "Unknown Artist" };
+  }
+
+  // No separator — whole name is title
+  return { title: cleanName(base), artist: "Unknown Artist" };
 }
 
 function generateSongs() {
