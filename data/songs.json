@@ -1,0 +1,12 @@
+{
+  "songs": [
+    {
+      "id": 1,
+      "title": "Badass",
+      "artist": "MassTamilan.dev",
+      "category": "Music",
+      "filename": "Badass-MassTamilan.dev.mp3",
+      "audio": "https://raw.githubusercontent.com/vip007vishal/ringo-music/main/songs/Badass-MassTamilan.dev.mp3"
+    }
+  ]
+}

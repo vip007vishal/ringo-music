@@ -1,0 +1,21 @@
+{
+  "name": "ringo-music-api",
+  "version": "1.0.0",
+  "description": "Ringo Music – local API server + song catalog generator",
+  "main": "server/index.js",
+  "scripts": {
+    "generate": "node scripts/generate-songs.js",
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "watch": "node server/watcher.js"
+  },
+  "keywords": ["music", "api"],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

@@ -1,0 +1,38 @@
+name: Auto-update songs.json
+
+on:
+  push:
+    paths:
+      - "songs/**"      # fires whenever a file in /songs is added/changed/removed
+  workflow_dispatch:    # allow manual trigger from GitHub UI
+
+jobs:
+  update-catalog:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # needed to commit back to the repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Regenerate songs.json
+        run: node scripts/generate-songs.js
+
+      - name: Commit updated songs.json (if changed)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/songs.json
+          if git diff --cached --quiet; then
+            echo "No changes to songs.json — skipping commit."
+          else
+            git commit -m "chore: auto-update songs.json [skip ci]"
+            git push
+          fi
